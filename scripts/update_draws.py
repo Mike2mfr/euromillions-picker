@@ -12,6 +12,7 @@ import csv
 import datetime as dt
 import io
 import json
+import re
 import sys
 import urllib.request
 from pathlib import Path
@@ -21,6 +22,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DRAWS = ROOT / "draws.csv"
 META = ROOT / "meta.json"
 HEADER = ["date", "n1", "n2", "n3", "n4", "n5", "s1", "s2"]
+JACKPOT_URL = "https://www.euro-millions.com/amp/fr/resultats/{d:%d-%m-%Y}"
 
 
 def fail(msg):
@@ -40,6 +42,27 @@ def validate(row):
     if len(set(stars)) != 2 or not all(1 <= s <= 12 for s in stars):
         raise ValueError(f"{date}: bad stars {stars}")
     return [date.isoformat(), *map(str, main), *map(str, stars)]
+
+
+def fetch_jackpot(date_iso):
+    """Return e.g. '€26 million' for a draw date, or '' if it can't be read."""
+    try:
+        d = dt.date.fromisoformat(date_iso)
+        req = urllib.request.Request(JACKPOT_URL.format(d=d), headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            html = resp.read().decode("utf-8", "ignore")
+        text = re.sub(r"<[^>]+>", " ", html)
+        m = re.search(r"Jackpot\s*:?\s*([\d\s.,]+?)\s*millions?\s*(?:d['’]euros|€|euros)", text, re.I)
+        if not m:
+            return ""
+        num = m.group(1).replace(" ", "").replace("\u00a0", "").replace(",", ".")
+        value = float(num)
+        if not 10 <= value <= 300:  # EuroMillions jackpots are €17m to €250m
+            return ""
+        return f"€{value:g} million"
+    except Exception as e:  # never let the jackpot break the draw update
+        print(f"Jackpot not available: {e}")
+        return ""
 
 
 def main():
@@ -71,8 +94,15 @@ def main():
             except ValueError as e:
                 fail(str(e))
 
+    meta = json.loads(META.read_text()) if META.exists() else {}
     if not new_rows:
         print(f"Already up to date (last draw {last_date}).")
+        if not meta.get("jackpot"):
+            jp = fetch_jackpot(last_date)
+            if jp:
+                meta["jackpot"] = jp
+                META.write_text(json.dumps(meta, ensure_ascii=False) + "\n")
+                print(f"Jackpot: {jp}")
         return
 
     with DRAWS.open("a", newline="") as f:
@@ -81,13 +111,13 @@ def main():
         w = csv.writer(f, lineterminator="\n")
         w.writerows(new_rows)
 
-    meta = json.loads(META.read_text()) if META.exists() else {}
     meta["updated"] = dt.date.today().isoformat()
-    meta["jackpot"] = ""  # unknown after an automatic update; the page hides it
+    meta["jackpot"] = fetch_jackpot(new_rows[-1][0])  # '' hides the box
     META.write_text(json.dumps(meta, ensure_ascii=False) + "\n")
 
     for r in new_rows:
         print(f"Added {r[0]}: {' '.join(r[1:6])}  stars {' '.join(r[6:8])}")
+    print(f"Jackpot: {meta['jackpot'] or 'not available'}")
 
 
 if __name__ == "__main__":
