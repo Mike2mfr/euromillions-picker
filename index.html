@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EuroMillions Number Picker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1020;--panel:#131a30;--panel2:#1a2340;--line:#26304f;--text:#e8ecf7;--muted:#8d97b5;--blue:#3d6bff;--gold:#ffc83d;--ok:#3ddc97;--bad:#ff5c5c;--warn:#ffb03d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:28px 18px 60px}
+h1{font:700 30px/1.1 "Space Grotesk",sans-serif;margin:0 0 6px;letter-spacing:-.5px}
+h1 span{color:var(--gold)}
+h2{font:600 17px "Space Grotesk",sans-serif;margin:0 0 12px}
+.sub{color:var(--muted);margin:0 0 18px}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+@media(max-width:880px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.notice{background:#1b1630;border:1px solid #3b2d63;border-radius:12px;padding:12px 14px;color:#cfc4f2;font-size:13.5px;margin-bottom:16px}
+.notice b{color:#fff}
+.balls{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+.stars{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;margin-top:4px}
+@media(max-width:520px){.stars{grid-template-columns:repeat(6,1fr)}}
+.b{position:relative;aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font:700 14px "Space Grotesk";cursor:pointer;user-select:none;border:2px solid transparent;transition:transform .1s;color:#0b1020}
+.b:hover{transform:scale(1.08)}
+.b small{font:500 9px Inter;opacity:.8;margin-top:-2px}
+.b.star{border-radius:30%}
+.b.lock{border-color:#fff;box-shadow:0 0 0 3px var(--gold)}
+.b.excl{opacity:.22;text-decoration:line-through}
+.b .tag{position:absolute;top:-5px;right:-5px;font-size:10px;background:#000;color:var(--gold);border-radius:8px;padding:0 4px;line-height:15px}
+.b .last{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--panel)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin:10px 0 0}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.mode{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px;cursor:pointer;font-size:13px;text-align:left;color:var(--text)}
+.mode b{display:block;font:600 13.5px "Space Grotesk"}
+.mode span{color:var(--muted);font-size:11.5px}
+.mode.on{border-color:var(--gold);background:#2a2614}
+.chk{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;margin:6px 0;cursor:pointer}
+.chk input{margin-top:3px;accent-color:var(--gold)}
+.chk span small{color:var(--muted);display:block;font-size:11.5px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button.main{background:var(--gold);color:#1a1300;border:0;border-radius:10px;padding:12px 18px;font:700 15px "Space Grotesk";cursor:pointer}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:7px 11px;font-size:13px;cursor:pointer}
+button.ghost:hover{border-color:var(--muted)}
+select,input[type=text]{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:14px Inter}
+input[type=text]{width:100%}
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{background:none;border:0;color:var(--muted);padding:6px 10px;font-size:12.5px;cursor:pointer}
+.seg button.on{background:var(--blue);color:#fff}
+.ticket{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px}
+.ticket .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tb{display:flex;gap:5px;align-items:center}
+.tb .n,.tb .s{width:34px;height:34px;display:flex;align-items:center;justify-content:center;font:700 14px "Space Grotesk"}
+.tb .n{border-radius:50%;background:#fff;color:#0b1a4d}
+.tb .s{border-radius:30%;background:var(--gold);color:#3b2800;margin-left:2px}
+.tb .n.m,.tb .s.m{box-shadow:0 0 0 3px var(--ok)}
+.meta{font-size:11.5px;color:var(--muted);flex:1;min-width:150px}
+.pill{display:inline-block;font-size:11px;border-radius:20px;padding:1px 8px;margin-right:4px}
+.pill.g{background:rgba(61,220,151,.15);color:var(--ok)}
+.pill.w{background:rgba(255,176,61,.15);color:var(--warn)}
+.pill.r{background:rgba(255,92,92,.15);color:var(--bad)}
+.bt{font-size:12px;color:var(--muted);margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+.bt table{border-collapse:collapse;width:100%;margin-top:4px}
+.bt td{padding:1px 6px 1px 0}
+.empty{color:var(--muted);font-size:13px;padding:10px 0}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tab{background:none;border:1px solid var(--line);color:var(--muted);border-radius:20px;padding:5px 12px;cursor:pointer;font-size:13px}
+.tab.on{color:var(--text);border-color:var(--blue);background:rgba(61,107,255,.15)}
+.notesgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.notesgrid label{font-size:12px;color:var(--muted)}
+table.odds{width:100%;border-collapse:collapse;font-size:13px}
+table.odds td,table.odds th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}
+table.odds th{color:var(--muted);font-weight:500;font-size:12px}
+.insight{font-size:13px;color:#c9d1ea;margin:0 0 10px}
+.insight b{color:#fff}
+.foot{color:var(--muted);font-size:12px;margin-top:22px;line-height:1.6}
+.foot a{color:#9fb4ff}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#000;color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+#loading{color:var(--muted);padding:40px 0;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>EuroMillions <span>Number Picker</span></h1>
+  <p class="sub" id="subline">Loading draw history…</p>
+  <div id="loading">Loading 2,000 draws…</div>
+  <div id="app" hidden>
+  <div class="card" id="latestCard" style="margin-bottom:16px"></div>
+
+  <div class="notice"><b>Straight talk:</b> every combination has the same 1 in 139,838,160 chance. The balls don't remember past draws, so hot, cold or overdue numbers can't raise your odds; the research in your folder agrees, and even LotoIA says "EuroMillions is a pure game of chance". What this app <b>can</b> do: help you avoid the numbers crowds pick (so a win is less likely to be shared), spread several tickets so they don't overlap, and let you test any ticket against every past draw.</div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="tabs">
+          <button class="tab on" data-tab="board">Number board</button>
+          <button class="tab" data-tab="notes">My notes</button>
+          <button class="tab" data-tab="odds">Odds &amp; facts</button>
+        </div>
+
+        <div id="tab-board">
+          <div class="label" style="margin-top:0">Analysis window</div>
+          <div class="row">
+            <select id="win">
+              <option value="hybrid">Hybrid: last 2 yrs + 5 yrs + all-time</option>
+              <option value="all">All-time</option>
+              <option value="y5">Last 5 years</option>
+              <option value="y2">Last 2 years</option>
+              <option value="d700">Last 700 draws</option>
+              <option value="d500">Last 500 draws</option>
+              <option value="d200">Last 200 draws</option>
+              <option value="d100">Last 100 draws</option>
+            </select>
+            <div class="seg" id="view"><button data-v="freq" class="on">Times drawn</button><button data-v="gap">Draws since seen</button></div>
+          </div>
+          <div class="label">Main numbers (1–50)</div>
+          <div class="balls" id="mainGrid"></div>
+          <div class="label">Lucky Stars (1–12)</div>
+          <div class="stars" id="starGrid"></div>
+          <div class="legend" id="legend"></div>
+          <div class="legend">
+            <span>Tap once = <b style="color:var(--gold)">always include</b> · twice = <b>exclude</b> · three times = reset</span>
+            <span>★ = in your notes · white dot = in the latest draw</span>
+          </div>
+          <p style="font-size:11.5px;color:var(--muted);margin:10px 0 0">Star stats only use draws since 27 Sep 2016, when star 12 was added, so every star is compared fairly.</p>
+        </div>
+
+        <div id="tab-notes" hidden>
+          <p style="font-size:13px;color:var(--muted);margin-top:0">Your hot / cold / overdue lists. Edit freely (comma-separated); the board and the "My notes" strategy update instantly.</p>
+          <div class="notesgrid">
+            <label>Hot numbers<input type="text" id="n_hot"></label>
+            <label>Hot stars<input type="text" id="n_hotS"></label>
+            <label>Cold numbers<input type="text" id="n_cold"></label>
+            <label>Cold stars<input type="text" id="n_coldS"></label>
+            <label>Overdue numbers<input type="text" id="n_due"></label>
+            <label>Overdue stars<input type="text" id="n_dueS"></label>
+          </div>
+          <div class="row" style="margin-top:10px"><button class="ghost" id="resetNotes">Restore my original notes</button><button class="ghost" id="liveNotes">Fill from current stats</button></div>
+        </div>
+
+        <div id="tab-odds" hidden>
+          <p class="insight"><b>Odds per ticket</b> (5 numbers from 50, 2 stars from 12):</p>
+          <table class="odds" id="oddsTable"></table>
+          <p class="insight" style="margin-top:14px"><b>What the research in your folder says</b></p>
+          <p class="insight">• <b>Crowds are predictable, the balls aren't.</b> A study of real lotto players (Suetens, Galbo-Jørgensen &amp; Tyran) found people bet <b>less</b> on numbers drawn last week and <b>more</b> on "hot" numbers. Picking the opposite won't help you win, but it lowers the chance of sharing a jackpot.</p>
+          <p class="insight">• <b>Limiting yourself to "lucky" subsets reduces your coverage</b> (Stömmer, 2026). The "Spread tickets" option makes several tickets cover as many different numbers as possible instead.</p>
+          <p class="insight">• <b>Big jackpots sell more tickets, which means more people to share with</b> (Abrams &amp; Garibaldi, 2025). A ticket is always a bad bet on average, but avoiding popular numbers matters most when the jackpot is huge.</p>
+          <p class="insight">• <b>Prediction models</b> (Nkomozake's Dirichlet model, LotoIA's "Hybrid" engine) can't beat a fair, independent draw: the Test button shows "smart" tickets win about as often as any other. Treat any "convergence" or "prediction" score as entertainment.</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Generate</h2>
+        <div class="label" style="margin-top:0">Strategy</div>
+        <div class="modes" id="modes"></div>
+
+        <div class="label">Filters</div>
+        <label class="chk"><input type="checkbox" id="f_bday" checked><span>Avoid "birthday" tickets<small>At least 2 numbers above 31</small></span></label>
+        <label class="chk"><input type="checkbox" id="f_oe" checked><span>Balanced odd / even<small>2–3 odd numbers</small></span></label>
+        <label class="chk"><input type="checkbox" id="f_lh" checked><span>Balanced low / high<small>2–3 numbers from 1–25</small></span></label>
+        <label class="chk"><input type="checkbox" id="f_sum" checked><span>Typical total<small>Main numbers add up to 95–160</small></span></label>
+        <label class="chk"><input type="checkbox" id="f_seq" checked><span>No runs or patterns<small>Max 2 consecutive, no 3 sharing a last digit</small></span></label>
+        <label class="chk"><input type="checkbox" id="f_crowd"><span>Dodge the crowd<small>Include ≥1 number from the latest draw, max 1 of the 10 hottest (players do the opposite)</small></span></label>
+        <label class="chk"><input type="checkbox" id="f_spread" checked><span>Spread tickets<small>Several tickets share as few numbers and stars as possible</small></span></label>
+
+        <div class="row" style="margin-top:14px">
+          <select id="count"><option>1</option><option selected>3</option><option>5</option><option>10</option></select>
+          <button class="main" id="go" style="flex:1">Generate tickets</button>
+        </div>
+        <div id="out"><div class="empty">Pick a strategy and tap Generate.</div></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2>Saved tickets &amp; checker</h2>
+        <div id="saved"><div class="empty">Tap ☆ on a ticket to save it here.</div></div>
+        <div class="label">Check against a draw (5 numbers + 2 stars)</div>
+        <div class="row"><input type="text" id="drawIn" placeholder="e.g. 7 18 23 41 46 + 2 9" style="flex:1"><button class="ghost" id="checkBtn">Check</button></div>
+        <div class="label">Or test your own ticket against every past draw</div>
+        <div class="row"><input type="text" id="ownIn" placeholder="your 5 numbers + 2 stars" style="flex:1"><button class="ghost" id="ownBtn">Test</button></div>
+        <div id="ownOut"></div>
+        <div class="row" style="margin-top:10px"><button class="ghost" id="copyAll">Copy saved</button><button class="ghost" id="clearSaved">Clear saved</button></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot">
+    <span id="footData"></span> Updated automatically after every Tuesday and Friday draw.<br>
+    Ideas from: Suetens et al., <i>Predicting Lotto Numbers</i>; Stömmer, <i>Tackling the 6/49 Lottery</i>; Abrams &amp; Garibaldi, <i>Finding good bets in the lottery</i>; Bărboianu, <i>The Mathematics of Lottery</i>; <a href="https://lotoia.fr/en/euromillions/generator">LotoIA generator</a>.<br>
+    Play only what you're happy to lose. In France: <a href="https://www.joueurs-info-service.fr">Joueurs Info Service</a> · 09 74 75 13 13.
+  </p>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- CONSTANTS ----------
+const ORIGINAL_NOTES = {hot:[42,17,44,23,20],hotS:[2,3],cold:[22,40,43,18,1],coldS:[1,4],due:[21,24,15,50,27],dueS:[10,8]};
+const STAR12 = '2016-09-27';
+const $ = s => document.querySelector(s);
+const range = n => Array.from({length:n},(_,i)=>i+1);
+const parseList = (s,max) => [...new Set((s.match(/\d+/g)||[]).map(Number).filter(n=>n>=1&&n<=max))];
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1600)}
+function rnd(){const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]/4294967296}
+const store = {get(k,d){try{const v=localStorage.getItem('em_'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('em_'+k,JSON.stringify(v))}catch(e){}}};
+const C=(n,k)=>{let r=1;for(let i=0;i<k;i++)r=r*(n-i)/(i+1);return r};
+
+// ---------- STATE ----------
+let DRAWS=[], META={}, STATS=null;
+let notes = store.get('notes', JSON.parse(JSON.stringify(ORIGINAL_NOTES)));
+let mainState={}, starState={}, saved=store.get('saved',[]), mode=store.get('mode','notes'), win=store.get('win','hybrid'), view='freq', lastDraw=null, current=[];
+
+// ---------- STATS ----------
+function windowRows(w){
+  const n=DRAWS.length, last=DRAWS[n-1].date;
+  const yearsAgo=y=>{const d=new Date(last);d.setFullYear(d.getFullYear()-y);return d.toISOString().slice(0,10)};
+  if(w==='all') return DRAWS;
+  if(w==='y5') return DRAWS.filter(r=>r.date>yearsAgo(5));
+  if(w==='y2') return DRAWS.filter(r=>r.date>yearsAgo(2));
+  if(w.startsWith('d')) return DRAWS.slice(-+w.slice(1));
+  return DRAWS;
+}
+// ratio = observed / expected  (1 = exactly average)
+function ratios(rows){
+  const m={}, s={}; range(50).forEach(n=>m[n]=0); range(12).forEach(n=>s[n]=0);
+  rows.forEach(r=>r.main.forEach(n=>m[n]++));
+  const sr=rows.filter(r=>r.date>=STAR12); sr.forEach(r=>r.stars.forEach(n=>s[n]++));
+  const em=rows.length*5/50, es=Math.max(sr.length,1)*2/12;
+  const rm={}, rs={}; range(50).forEach(n=>rm[n]=m[n]/em); range(12).forEach(n=>rs[n]=s[n]/es);
+  return {m,s,rm,rs,n:rows.length,ns:sr.length};
+}
+function computeStats(){
+  let rm={}, rs={}, cnt, label;
+  if(win==='hybrid'){
+    const parts=['y2','y5','all'].map(w=>ratios(windowRows(w)));
+    range(50).forEach(n=>rm[n]=parts.reduce((a,p)=>a+p.rm[n],0)/3);
+    range(12).forEach(n=>rs[n]=parts.reduce((a,p)=>a+p.rs[n],0)/3);
+    cnt=parts[2]; label='hybrid (2y + 5y + all-time)';
+  } else { cnt=ratios(windowRows(win)); rm=cnt.rm; rs=cnt.rs; label=$('#win').selectedOptions[0].textContent.toLowerCase(); }
+  // gaps (always from full history)
+  const gm={}, gs={}, N=DRAWS.length;
+  range(50).forEach(n=>gm[n]=N); range(12).forEach(n=>gs[n]=N);
+  DRAWS.forEach((r,i)=>{r.main.forEach(n=>gm[n]=N-1-i); r.stars.forEach(n=>gs[n]=N-1-i)});
+  const hotTop=range(50).sort((a,b)=>rm[b]-rm[a]).slice(0,10);
+  const hotStars=range(12).sort((a,b)=>rs[b]-rs[a]).slice(0,3);
+  const coldTop=range(50).sort((a,b)=>rm[a]-rm[b]).slice(0,10);
+  const dueTop=range(50).sort((a,b)=>gm[b]-gm[a]).slice(0,10);
+  const dueStars=range(12).sort((a,b)=>gs[b]-gs[a]).slice(0,3);
+  STATS={rm,rs,cnt,gm,gs,hotTop,hotStars,coldTop,dueTop,dueStars,label};
+}
+
+// ---------- BOARD ----------
+function colorFor(t){ // t: 0 = red ... 1 = green
+  t=Math.max(0,Math.min(1,t)); const c1=[255,92,92], c2=[61,220,151];
+  return `rgb(${c1.map((x,i)=>Math.round(x+(c2[i]-x)*t)).join(',')})`;
+}
+function noteTag(n,star){return (star?['hotS','coldS','dueS']:['hot','cold','due']).some(x=>notes[x].includes(n))}
+function cellHTML(n,star){
+  const S=STATS, st=(star?starState:mainState)[n]; const cls=(st===1?'lock':st===2?'excl':'')+(star?' star':'');
+  const r=star?S.rs[n]:S.rm[n], g=star?S.gs[n]:S.gm[n];
+  const vals=Object.values(star?S.rs:S.rm), mn=Math.min(...vals), mx=Math.max(...vals);
+  const gv=Object.values(star?S.gs:S.gm), gmx=Math.max(...gv);
+  let bg, small, title;
+  const cnt=star?S.cnt.s[n]:S.cnt.m[n];
+  if(view==='freq'){ bg=colorFor((r-mn)/(mx-mn||1)); small=win==='hybrid'?(r*100).toFixed(0)+'%':cnt; title=`${(r*100).toFixed(0)}% of the average rate (${S.label})`; }
+  else { bg=colorFor(1-g/(gmx||1)); small=g; title=`Last seen ${g} draw${g===1?'':'s'} ago`; }
+  const inLast=(star?LATEST.stars:LATEST.main).includes(n);
+  return `<div class="b ${cls}" ${star?'data-s':'data-m'}="${n}" style="background:${bg}" title="${title}">${n}<small>${small}</small>${noteTag(n,star)?'<span class="tag">★</span>':''}${inLast?'<span class="last"></span>':''}</div>`;
+}
+function renderBoard(){
+  $('#mainGrid').innerHTML=range(50).map(n=>cellHTML(n,false)).join('');
+  $('#starGrid').innerHTML=range(12).map(n=>cellHTML(n,true)).join('');
+  $('#legend').innerHTML = view==='freq'
+    ? `<span><i style="background:var(--ok)"></i>drawn more often</span><span><i style="background:var(--bad)"></i>drawn less often</span><span>${win==='hybrid'?'small figure = % of average rate':'small figure = times drawn'} · ${STATS.cnt.n} draws</span>`
+    : `<span><i style="background:var(--ok)"></i>seen recently</span><span><i style="background:var(--bad)"></i>absent longest</span><span>small figure = draws since last seen</span>`;
+}
+document.addEventListener('click',e=>{
+  const m=e.target.closest('[data-m]'), s=e.target.closest('[data-s]');
+  if(m){const n=+m.dataset.m, locks=Object.values(mainState).filter(v=>v===1).length; let nx=((mainState[n]||0)+1)%3; if(nx===1&&locks>=5){nx=2;toast('Max 5 locked numbers')} mainState[n]=nx; renderBoard();}
+  if(s){const n=+s.dataset.s, locks=Object.values(starState).filter(v=>v===1).length; let nx=((starState[n]||0)+1)%3; if(nx===1&&locks>=2){nx=2;toast('Max 2 locked stars')} starState[n]=nx; renderBoard();}
+});
+
+// ---------- MODES ----------
+const MODES=[
+  {id:'notes',t:'My notes',d:'Your hot, cold & overdue lists'},
+  {id:'hot',t:'Hot',d:'Most-drawn in the window'},
+  {id:'cold',t:'Cold',d:'Least-drawn in the window'},
+  {id:'overdue',t:'Overdue',d:'Longest absent right now'},
+  {id:'mixed',t:'Balanced',d:'2 hot · 2 cold · 1 overdue (1 hot → latest draw when dodging)'},
+  {id:'random',t:'Pure random',d:'Like a Quick Pick'}
+];
+function renderModes(){$('#modes').innerHTML=MODES.map(m=>`<button class="mode ${m.id===mode?'on':''}" data-mode="${m.id}"><b>${m.t}</b><span>${m.d}</span></button>`).join('')}
+$('#modes').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b)return;mode=b.dataset.mode;store.set('mode',mode);renderModes()});
+
+// ---------- GENERATION ----------
+function weightedPick(pool,w,k,must){
+  const chosen=[...must]; let p=pool.filter(x=>!chosen.includes(x));
+  while(chosen.length<k&&p.length){const tot=p.reduce((s,x)=>s+w(x),0); let r=rnd()*tot,i=0; for(;i<p.length;i++){r-=w(p[i]);if(r<=0)break} i=Math.min(i,p.length-1); chosen.push(p[i]); p.splice(i,1)}
+  return chosen.sort((a,b)=>a-b);
+}
+function weightsFor(star){
+  const S=STATS, R=star?S.rs:S.rm, G=star?S.gs:S.gm;
+  const hot=new Set(star?notes.hotS:notes.hot), cold=new Set(star?notes.coldS:notes.cold), due=new Set(star?notes.dueS:notes.due);
+  switch(mode){
+    case 'hot': return n=>Math.pow(R[n],10);
+    case 'cold': return n=>Math.pow(1/R[n],10);
+    case 'overdue': return n=>Math.pow(G[n]+1,1.5);
+    case 'notes': return n=>(hot.has(n)||cold.has(n)||due.has(n))?10:0.4;
+    default: return ()=>1;
+  }
+}
+function pickFromLists(lists,pool,must,w){
+  let cur=[...must];
+  for(const [arr,k] of lists){const p=arr.filter(x=>pool.includes(x)&&!cur.includes(x)); for(let i=0;i<k&&p.length&&cur.length<5;i++) cur.push(p.splice(Math.floor(rnd()*p.length),1)[0])}
+  return weightedPick(pool,w||(()=>1),5,cur);
+}
+function filters(t){
+  const f=id=>$('#'+id).checked, m=t.main;
+  if(f('f_bday')&&m.filter(x=>x>31).length<2) return false;
+  const odd=m.filter(x=>x%2).length; if(f('f_oe')&&(odd<2||odd>3)) return false;
+  const low=m.filter(x=>x<=25).length; if(f('f_lh')&&(low<2||low>3)) return false;
+  const sum=m.reduce((a,b)=>a+b,0); if(f('f_sum')&&(sum<95||sum>160)) return false;
+  if(f('f_seq')){let run=1,mr=1;for(let i=1;i<5;i++){run=m[i]===m[i-1]+1?run+1:1;mr=Math.max(mr,run)} if(mr>2)return false; const d={};m.forEach(x=>d[x%10]=(d[x%10]||0)+1); if(Math.max(...Object.values(d))>=3)return false;}
+  if(f('f_crowd')){ if(!m.some(x=>LATEST.main.includes(x))) return false; if(m.filter(x=>STATS.hotTop.includes(x)).length>1) return false; }
+  return true;
+}
+function makeTicket(usedM,usedS){
+  const mustM=range(50).filter(n=>mainState[n]===1), mustS=range(12).filter(n=>starState[n]===1);
+  const poolM=range(50).filter(n=>mainState[n]!==2), poolS=range(12).filter(n=>starState[n]!==2);
+  if(poolM.length<5||poolS.length<2) return null;
+  // soft spread: numbers already used in earlier tickets become ~30x less likely
+  const pm=n=>usedM&&usedM.has(n)?0.03:1, ps=n=>usedS&&usedS.has(n)?0.03:1;
+  const bw=weightsFor(false), bs=weightsFor(true), wm=n=>bw(n)*pm(n), ws=n=>bs(n)*ps(n), S=STATS;
+  const fresh=(arr,used)=>{const f=arr.filter(x=>!(used&&used.has(x))); return f.length?f:arr};
+  const pickStar=(cands,s)=>{const c=fresh(cands.filter(x=>poolS.includes(x)&&!s.includes(x)),usedS); if(s.length<2&&c.length) s.push(c[Math.floor(rnd()*c.length)])};
+  let best=null;
+  for(let i=0;i<6000;i++){
+    let main;
+    if(mode==='mixed') main=pickFromLists($('#f_crowd').checked?[[fresh(LATEST.main,usedM),1],[fresh(S.hotTop,usedM),1],[fresh(S.coldTop,usedM),2],[fresh(S.dueTop,usedM),1]]:[[fresh(S.hotTop,usedM),2],[fresh(S.coldTop,usedM),2],[fresh(S.dueTop,usedM),1]],poolM,mustM,pm);
+    else main=weightedPick(poolM,wm,5,mustM);
+    let stars, s=[...mustS];
+    if(mode==='notes'){pickStar(notes.hotS,s); pickStar([...notes.dueS,...notes.coldS],s); stars=weightedPick(poolS,ws,2,s)}
+    else if(mode==='mixed'){pickStar(S.hotStars,s); pickStar(S.dueStars,s); stars=weightedPick(poolS,ps,2,s)}
+    else stars=weightedPick(poolS,ws,2,mustS);
+    const t={main,stars}; if(!best)best=t; if(filters(t)) return t;
+  }
+  best.relaxed=true; return best;
+}
+
+// ---------- SHARE-RISK SCORE (how "popular" a ticket looks) ----------
+function shareRisk(t){
+  const m=t.main; let s=0;
+  s+=m.filter(x=>x<=31).length*8; s+=m.filter(x=>x<=12).length*4;          // birthdays / months
+  let run=0;for(let i=1;i<5;i++) if(m[i]===m[i-1]+1) run++; s+=run*10;     // sequences
+  const gaps=m.slice(1).map((x,i)=>x-m[i]); if(gaps.every(g=>g===gaps[0])) s+=25; // arithmetic patterns
+  s+=m.filter(x=>x%7===0||x===13).length*3;                               // "lucky" 7s
+  s+=m.filter(x=>STATS.hotTop.includes(x)).length*6;                       // hot-hand players
+  s-=m.filter(x=>LATEST.main.includes(x)).length*5;                        // gambler's fallacy players avoid these
+  s+=t.stars.filter(x=>x===7||x<=3).length*3;
+  return Math.max(0,Math.min(100,Math.round(s)));
+}
+function riskPill(t){const r=shareRisk(t); return r<30?`<span class="pill g">share risk ${r}/100 · low</span>`:r<55?`<span class="pill w">share risk ${r}/100 · medium</span>`:`<span class="pill r">share risk ${r}/100 · high</span>`}
+
+// ---------- BACKTEST ----------
+const TIERS=['5+2','5+1','5+0','4+2','4+1','3+2','4+0','2+2','3+1','3+0','1+2','2+1','2+0'];
+function prizeFor(mm,ss){const i=TIERS.indexOf(mm+'+'+ss); return i<0?null:(i===0?'Jackpot':'Tier '+(i+1))}
+function backtest(t){
+  const res={}; let wins=0;
+  DRAWS.forEach(r=>{if(r.date<STAR12&&t.stars.some(s=>s>(r.date<'2011-05-10'?9:11)))return; const k=t.main.filter(n=>r.main.includes(n)).length+'+'+t.stars.filter(n=>r.stars.includes(n)).length; if(TIERS.includes(k)){res[k]=(res[k]||0)+1;wins++}});
+  return {res,wins,n:DRAWS.length};
+}
+function backtestHTML(t){
+  const b=backtest(t); const exp=DRAWS.length/13;
+  const rows=TIERS.filter(k=>b.res[k]).map(k=>`<tr><td>${k}</td><td>${prizeFor(...k.split('+').map(Number))}</td><td>×${b.res[k]}</td></tr>`).join('');
+  return `<div class="bt">Against all ${b.n.toLocaleString('en')} past draws this ticket would have won a prize <b style="color:var(--text)">${b.wins} times</b> (a typical random ticket: ~${Math.round(exp)}).${rows?`<table>${rows}</table>`:''}</div>`;
+}
+
+// ---------- TICKETS UI ----------
+function ballsHTML(t,draw){return `<div class="tb">${t.main.map(n=>`<div class="n ${draw&&draw.main.includes(n)?'m':''}">${n}</div>`).join('')}${t.stars.map(n=>`<div class="s ${draw&&draw.stars.includes(n)?'m':''}">${n}</div>`).join('')}</div>`}
+function describe(t){
+  const m=t.main,sum=m.reduce((a,b)=>a+b,0),odd=m.filter(x=>x%2).length;
+  return `${riskPill(t)}${t.relaxed?'<span class="pill w">filters relaxed</span>':''}<br>Sum ${sum} · ${odd} odd/${5-odd} even · ${m.filter(n=>noteTag(n)).length} from your notes`;
+}
+function renderOut(){
+  $('#out').innerHTML=current.map((t,i)=>`<div class="ticket"><div class="top">${ballsHTML(t)}<div class="meta">${describe(t)}</div><button class="ghost" data-test="${i}" title="Test against past draws">Test</button><button class="ghost" data-save="${i}" title="Save">☆</button></div><div id="bt${i}"></div></div>`).join('');
+  if(current.length>1&&$('#f_spread').checked){const all=new Set(current.flatMap(t=>t.main)); $('#out').insertAdjacentHTML('beforeend',`<div class="meta" style="margin-top:8px">These ${current.length} tickets cover ${all.size} different main numbers and ${new Set(current.flatMap(t=>t.stars)).size} stars.</div>`)}
+}
+$('#go').onclick=()=>{
+  const k=+$('#count').value, spread=$('#f_spread').checked; current=[]; const seen=new Set(), um=new Set(), us=new Set();
+  for(let i=0;i<k*5&&current.length<k;i++){
+    if(spread&&um.size>=50){um.clear()} if(spread&&us.size>=12){us.clear()}
+    const t=makeTicket(spread?um:null,spread?us:null); if(!t){toast('Too many exclusions');break}
+    const key=t.main.join()+'|'+t.stars.join(); if(seen.has(key))continue; seen.add(key); current.push(t); t.main.forEach(n=>um.add(n)); t.stars.forEach(n=>us.add(n));
+  }
+  renderOut();
+};
+$('#out').addEventListener('click',e=>{
+  const s=e.target.closest('[data-save]'), te=e.target.closest('[data-test]');
+  if(s){saved.unshift(current[+s.dataset.save]);store.set('saved',saved);s.textContent='★';renderSaved();renderLatest();toast('Saved')}
+  if(te){const i=+te.dataset.test, el=$('#bt'+i); el.innerHTML=el.innerHTML?'':backtestHTML(current[i])}
+});
+function renderSaved(){
+  if(!saved.length){$('#saved').innerHTML='<div class="empty">Tap ☆ on a ticket to save it here.</div>';return}
+  $('#saved').innerHTML=saved.map((t,i)=>{let res='';
+    if(lastDraw){const mm=t.main.filter(n=>lastDraw.main.includes(n)).length, ss=t.stars.filter(n=>lastDraw.stars.includes(n)).length, p=prizeFor(mm,ss); res=`<span class="pill ${p?'g':'w'}">${mm}+${ss}${p?' · '+p+' prize':' · no prize'}</span>`}
+    return `<div class="ticket"><div class="top">${ballsHTML(t,lastDraw)}<div class="meta">${res}</div><button class="ghost" data-del="${i}" title="Remove">✕</button></div></div>`}).join('');
+}
+$('#saved').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;saved.splice(+b.dataset.del,1);store.set('saved',saved);renderSaved();renderLatest()});
+function parseTicket(raw){
+  const parts=raw.split(/\+|\*|★|stars?/i); let main,stars;
+  if(parts.length>=2){main=parseList(parts[0],50);stars=parseList(parts.slice(1).join(' '),12)} else {const a=(raw.match(/\d+/g)||[]).map(Number);main=a.slice(0,5);stars=a.slice(5,7)}
+  if(main.length!==5||stars.length!==2||main.some(n=>n<1||n>50)||stars.some(n=>n<1||n>12)) return null;
+  return {main:main.sort((a,b)=>a-b),stars:stars.sort((a,b)=>a-b)};
+}
+$('#checkBtn').onclick=()=>{const t=parseTicket($('#drawIn').value); if(!t){toast('Enter 5 numbers + 2 stars');return} lastDraw=t; renderSaved(); toast('Checked')};
+$('#ownBtn').onclick=()=>{const t=parseTicket($('#ownIn').value); if(!t){toast('Enter 5 numbers + 2 stars');return} $('#ownOut').innerHTML=`<div class="ticket"><div class="top">${ballsHTML(t)}<div class="meta">${riskPill(t)}</div><button class="ghost" id="ownSave">☆</button></div>${backtestHTML(t)}</div>`; $('#ownSave').onclick=()=>{saved.unshift(t);store.set('saved',saved);renderSaved();renderLatest();toast('Saved')}};
+$('#copyAll').onclick=async()=>{if(!saved.length){toast('Nothing saved yet');return} const txt=saved.map(t=>t.main.join(' - ')+'  ★ '+t.stars.join(' - ')).join('\n'); try{await navigator.clipboard.writeText(txt);toast('Copied')}catch(e){toast('Copy blocked, select manually')}};
+$('#clearSaved').onclick=()=>{saved=[];store.set('saved',saved);renderSaved();renderLatest()};
+
+// ---------- LATEST + ODDS ----------
+let LATEST;
+function fmtDate(d){return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
+function renderLatest(){
+  let best='';
+  if(saved.length){let top=null; saved.forEach(t=>{const mm=t.main.filter(n=>LATEST.main.includes(n)).length, ss=t.stars.filter(n=>LATEST.stars.includes(n)).length; if(!top||mm*3+ss>top.mm*3+top.ss)top={mm,ss}}); const p=prizeFor(top.mm,top.ss); best=`<div class="meta" style="margin-top:6px">Your saved tickets vs this draw: best ${top.mm}+${top.ss}${p?' · <b style="color:var(--ok)">'+p+' prize!</b>':' · no prize this time'}</div>`}
+  $('#latestCard').innerHTML=`<div class="row" style="justify-content:space-between"><div><div class="label" style="margin:0 0 6px">Latest draw · ${fmtDate(LATEST.date)}</div>${ballsHTML(LATEST)}</div>${META.jackpot?`<div class="meta" style="text-align:right;flex:0 0 auto">Jackpot<br><b style="color:var(--text);font-size:14px">${META.jackpot}</b></div>`:''}</div>${best}`;
+}
+function renderOdds(){
+  const tot=C(50,5)*C(12,2);
+  const rows=TIERS.map((k,i)=>{const [a,b]=k.split('+').map(Number); const ways=C(5,a)*C(45,5-a)*C(2,b)*C(10,2-b); return `<tr><td>${k}</td><td>${i===0?'Jackpot':'Tier '+(i+1)}</td><td>1 in ${Math.round(tot/ways).toLocaleString('en')}</td></tr>`}).join('');
+  const any=TIERS.reduce((s,k)=>{const [a,b]=k.split('+').map(Number);return s+C(5,a)*C(45,5-a)*C(2,b)*C(10,2-b)},0);
+  $('#oddsTable').innerHTML=`<tr><th>Match</th><th>Prize</th><th>Odds</th></tr>${rows}<tr><td colspan="2"><b>Any prize</b></td><td><b>1 in ${(tot/any).toFixed(1)}</b></td></tr>`;
+}
+
+// ---------- NOTES ----------
+const NOTE_FIELDS={n_hot:['hot',50],n_hotS:['hotS',12],n_cold:['cold',50],n_coldS:['coldS',12],n_due:['due',50],n_dueS:['dueS',12]};
+function fillNotes(){for(const [id,[k]] of Object.entries(NOTE_FIELDS)) $('#'+id).value=notes[k].join(', ')}
+for(const [id,[k,max]] of Object.entries(NOTE_FIELDS)) $('#'+id).addEventListener('input',e=>{notes[k]=parseList(e.target.value,max);store.set('notes',notes);renderBoard()});
+$('#resetNotes').onclick=()=>{notes=JSON.parse(JSON.stringify(ORIGINAL_NOTES));store.set('notes',notes);fillNotes();renderBoard();toast('Notes restored')};
+$('#liveNotes').onclick=()=>{const S=STATS; const cS=range(12).sort((a,b)=>S.rs[a]-S.rs[b]).slice(0,2);
+  notes={hot:S.hotTop.slice(0,5),hotS:S.hotStars.slice(0,2),cold:S.coldTop.slice(0,5),coldS:cS,due:S.dueTop.slice(0,5),dueS:S.dueStars.slice(0,2)};
+  store.set('notes',notes);fillNotes();renderBoard();toast('Notes filled from '+S.label)};
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t)); ['board','notes','odds'].forEach(id=>$('#tab-'+id).hidden=t.dataset.tab!==id)});
+$('#win').onchange=e=>{win=e.target.value;store.set('win',win);computeStats();renderBoard()};
+$('#view').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;view=b.dataset.v;document.querySelectorAll('#view button').forEach(x=>x.classList.toggle('on',x===b));renderBoard()};
+
+// ---------- LOAD ----------
+async function load(){
+  try{
+    const [csv,meta]=await Promise.all([fetch('draws.csv',{cache:'no-store'}).then(r=>r.text()),fetch('meta.json',{cache:'no-store'}).then(r=>r.json()).catch(()=>({}))]);
+    DRAWS=csv.trim().split(/\r?\n/).slice(1).map(l=>{const a=l.split(',');return {date:a[0],main:a.slice(1,6).map(Number).sort((x,y)=>x-y),stars:a.slice(6,8).map(Number).sort((x,y)=>x-y)}}).filter(r=>r.main.length===5).sort((a,b)=>a.date<b.date?-1:1);
+    META=meta;
+  }catch(e){$('#loading').textContent='Could not load the draw history. Please reload the page.';return}
+  LATEST=DRAWS[DRAWS.length-1];
+  $('#win').value=win; computeStats();
+  $('#subline').textContent=`${DRAWS.length.toLocaleString('en')} draws (${fmtDate(DRAWS[0].date)} → ${fmtDate(LATEST.date)}) plus your own notes${META.updated?' · updated '+META.updated:''}`;
+  $('#footData').textContent=`Draw history: official EuroMillions results, ${DRAWS.length.toLocaleString('en')} draws, cross-checked against lottery.co.uk totals.`;
+  lastDraw={main:LATEST.main,stars:LATEST.stars}; $('#drawIn').value=LATEST.main.join(' ')+' + '+LATEST.stars.join(' ');
+  $('#loading').hidden=true; $('#app').hidden=false;
+  renderLatest(); renderBoard(); renderModes(); fillNotes(); renderSaved(); renderOdds();
+}
+load();
+</script>
+</body>
+</html>
